@@ -14,6 +14,7 @@ help = """
 
 Пример:
   ./sqldump_search.py text1 ./mydump.sql
+  ./sqldump_search.py text1 ./mydump.sql 5
   ./sqldump_search.py text1 ./mydump.sql -B 1 -A 3
 
 """
