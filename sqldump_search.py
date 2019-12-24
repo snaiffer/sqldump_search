@@ -142,7 +142,7 @@ class ContextFunction(Context):
         super().__init__("\$([A-z]*)\$", line_num, line, self._name)
         self.quote_opened = self._quote_matched(line)    # проверяем наличие открывающего маркера в той же строке с найденным именем контекста
 
-        if notskip_bak_function:
+        if not notskip_bak_function:
             self._skip = (match(".*?(_(bak|trash)[0-9]*)", self._name) is not None)
 
     # Переопределим "маркер тела функции" в соотвествии с первым найденным

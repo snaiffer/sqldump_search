@@ -57,3 +57,13 @@ line_53
 -- target_51
   -- target_51
 not_comment -- target_51
+
+
+Create function test2_bak(a int)
+LANGUAGE plpgsql
+AS $function$
+begin
+  $$
+  target_61
+end
+$function$

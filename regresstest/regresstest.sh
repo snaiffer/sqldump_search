@@ -31,6 +31,8 @@ check "../sqldump_search.py feed.sql 'target_13' 3" '# Тестирование 
 
 check "../sqldump_search.py feed.sql 'target_51'" '# Пропускаем, если строка поиска содержится в комментарии SQL'
 
+check "../sqldump_search.py feed.sql 'target_61'" '# Пропускаем поиск в контексте, если имя контекста соотвествует бэкапной функции (_bak, _trash)'
+
 #################################
 diff ./result ./result.good
 if [ $? = 0 ]; then
