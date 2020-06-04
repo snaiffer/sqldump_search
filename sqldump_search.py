@@ -170,58 +170,64 @@ with open(file_name, 'r') as f, open(file_name, 'r') as f_follower:
     last_printed_line_num = 0   # номер последней выведенной строки
     line_num = 0
     line_num_follower = 0
-    for line in f:
-        line_num = line_num + 1
 
-        if type(context).__name__ == "ContextNone":
-            new_context = Context.factory(line_num, line)
-            if new_context is not None:
-                context = new_context
-                print_next_lines_count = 0  # если встречается новая функция, то не печатаем строки после последней найденной
-        else:
-            context = context.process(line)
-            if context.skip():
-                continue
+    try:
+        for line in f:
+            line_num = line_num + 1
 
-        # ищем целевую строку поиска
-        if search(search_text, line, re.IGNORECASE):
-            # Пропускаем если это комментарий
-            if re.search("^[ \t\n]*--", line) is not None:
-                continue
+            if type(context).__name__ == "ContextNone":
+                new_context = Context.factory(line_num, line)
+                if new_context is not None:
+                    context = new_context
+                    print_next_lines_count = 0  # если встречается новая функция, то не печатаем строки после последней найденной
+            else:
+                context = context.process(line)
+                if context.skip():
+                    continue
 
-            # Выводим название контекста
-            if context.cout(line_num, search_text) and type(context).__name__ != "ContextNone":
-                last_printed_line_num = context.line_num
+            # ищем целевую строку поиска
+            if search(search_text, line, re.IGNORECASE):
+                # Пропускаем если это комментарий
+                if re.search("^[ \t\n]*--", line) is not None:
+                    continue
 
-            #########################################
-            # Вывести строки перед найденной строкой
-            line_num_start = max(line_num - out_before, last_printed_line_num + 1)
-            # Будем выводить строки из непечатаемой зоны, когда разрыв между прошлой печатной строкой и следующей < 3 строк
-            if (line_num_start - last_printed_line_num) < 4:
-                line_num_start = last_printed_line_num + 1
+                # Выводим название контекста
+                if context.cout(line_num, search_text) and type(context).__name__ != "ContextNone":
+                    last_printed_line_num = context.line_num
 
-            if (line_num_start - 1) > last_printed_line_num:
-                dot_delimiter()
+                #########################################
+                # Вывести строки перед найденной строкой
+                line_num_start = max(line_num - out_before, last_printed_line_num + 1)
+                # Будем выводить строки из непечатаемой зоны, когда разрыв между прошлой печатной строкой и следующей < 3 строк
+                if (line_num_start - last_printed_line_num) < 4:
+                    line_num_start = last_printed_line_num + 1
 
-            if out_before > 0:
-                # пропустить ненужные строки
-                while (line_num_follower < (line_num_start -1)):
-                    line_num_follower = line_num_follower + 1
-                    f_follower.readline()
-                # вывести заданное кол-во строк перед найденной строкой
-                while (line_num_follower < (line_num - 1)):
-                    line_num_follower = line_num_follower + 1
-                    sys.stdout.write(format_line_num(line_num_follower) + f_follower.readline())
-            #########################################
+                if (line_num_start - 1) > last_printed_line_num:
+                    dot_delimiter()
 
-            if line_num != last_printed_line_num:
-                # Выводим найденную строку
-                sys.stdout.write(format_line_num(line_num) + line.replace(search_text, color_red + search_text + color_reset))
-            print_next_lines_count = out_after
-            last_printed_line_num = line_num
+                if out_before > 0:
+                    # пропустить ненужные строки
+                    while (line_num_follower < (line_num_start -1)):
+                        line_num_follower = line_num_follower + 1
+                        f_follower.readline()
+                    # вывести заданное кол-во строк перед найденной строкой
+                    while (line_num_follower < (line_num - 1)):
+                        line_num_follower = line_num_follower + 1
+                        sys.stdout.write(format_line_num(line_num_follower) + f_follower.readline())
+                #########################################
 
-        elif print_next_lines_count != 0:
-            # Выводим строки после найденной строки
-            sys.stdout.write(format_line_num(line_num) + line)
-            print_next_lines_count = print_next_lines_count - 1
-            last_printed_line_num = line_num
+                if line_num != last_printed_line_num:
+                    # Выводим найденную строку
+                    sys.stdout.write(format_line_num(line_num) + line.replace(search_text, color_red + search_text + color_reset))
+                print_next_lines_count = out_after
+                last_printed_line_num = line_num
+
+            elif print_next_lines_count != 0:
+                # Выводим строки после найденной строки
+                sys.stdout.write(format_line_num(line_num) + line)
+                print_next_lines_count = print_next_lines_count - 1
+                last_printed_line_num = line_num
+
+    except BaseException as e:
+        print('The exception happened on line #' + format_line_num(line_num) + '\n')
+        raise
