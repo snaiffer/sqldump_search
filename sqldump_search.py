@@ -16,6 +16,7 @@ help = """
     -B <num_lines> --выводить кол-во строк до найденного текста
     -A <num_lines> --выводить кол-во строк после найденного текста
     --notskip_bak_function     --искать в бэкапных функциях (которые оканчиваются на _bak[0-9]*)
+    --context_only --выводить только контекст (название сущности в которой встречается текст поиска)
 
 Пример:
   ./sqldump_search.py text1 ./mydump.sql
@@ -27,6 +28,7 @@ help = """
 out_before = 1
 out_after = 1
 notskip_bak_function = False
+context_only = False
 
 console_width = 80
 
@@ -43,6 +45,7 @@ try:
         ['before=',
          'after=',
          'notskip_bak_function',
+         'context_only',
          'help',
          ])
 except getopt.GetoptError as err:
@@ -57,6 +60,8 @@ for opt, arg in options:
         out_after = int(arg)
     elif opt in ('--notskip_bak_function'):
         notskip_bak_function = True
+    elif opt in ('--context_only'):
+        context_only = True
     elif opt in ('-h', '--help'):
         print(help)
         exit(0)
@@ -82,12 +87,13 @@ def dot_delimiter():
 #########################################################
 class ContextNone(object):
     def __init__(self):
-        self.line = color_green + "Not in function context:" + color_reset + '\n'
+        self.line = color_green + "Not in known context:" + color_reset + '\n'
         self.couted = False     # Контекст уже выведен в cout
 
     def cout(self, cur_line=None, search_text=None):
         if not self.couted:
-            print(color_green + "#"*console_width + color_reset)
+            if not context_only:
+                print(color_green + "#"*console_width + color_reset)
             sys.stdout.write(self.line)
             self.couted = True
             return True
@@ -194,6 +200,8 @@ with open(file_name, 'r') as f, open(file_name, 'r') as f_follower:
                 # Выводим название контекста
                 if context.cout(line_num, search_text) and type(context).__name__ != "ContextNone":
                     last_printed_line_num = context.line_num
+                if context_only:
+                    continue
 
                 #########################################
                 # Вывести строки перед найденной строкой
